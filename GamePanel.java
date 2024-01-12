@@ -1,10 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
 
-public class GamePanel extends JPanel implements  Runnable{
+public class GamePanel extends JPanel implements  Runnable {
 
     // SCREEN SETTINGS
-    final  int originalTileSize = 16; //16 x 16 retro tile
+    final int originalTileSize = 16; //16 x 16 retro tile
     final int scale = 3; // to scale up the tiles for modern screens
 
     final int tileSize = originalTileSize * scale; //48 x 48 tile
@@ -17,8 +17,7 @@ public class GamePanel extends JPanel implements  Runnable{
     final int screenHeight = tileSize * maxScreenRow; // 576 pixels
     // screen size for the game
 
-    int FPS = 60;
-
+    int FPS = 120;
 
 
     KeyHandler keyH = new KeyHandler();
@@ -30,8 +29,6 @@ public class GamePanel extends JPanel implements  Runnable{
     int playerSpeed = 4; //player speed 4 means movement of 4 pixels
 
 
-
-
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(Color.black);
@@ -41,7 +38,7 @@ public class GamePanel extends JPanel implements  Runnable{
 
     }
 
-    public  void  startGameThread() {
+    public void startGameThread() {
 
         gameThread = new Thread(this);
         gameThread.start();
@@ -50,7 +47,11 @@ public class GamePanel extends JPanel implements  Runnable{
     @Override
     public void run() {
 
-        while(gameThread != null) // as long as gameThread exists{
+        // buffering the draw time
+        double drawInterval = 1000000000/FPS; // 1 billion nano seconds or 1 seconds/60 = 60 FPS
+        double nextDrawTime = System.nanoTime() + drawInterval;
+
+        while (gameThread != null){ // as long as gameThread exists
             //System.out.println("game loop is running");
 
             long currentTime = System.nanoTime();
@@ -65,7 +66,29 @@ public class GamePanel extends JPanel implements  Runnable{
 
             // addition to coordinate points when key is pressed shall happen
 
+
+            try {
+                double remainingTime = nextDrawTime - System.nanoTime();
+                remainingTime = remainingTime/1000000;
+
+                if (remainingTime < 0) {
+                    remainingTime = 0;
+                }
+
+                Thread.sleep((long) remainingTime);
+
+                nextDrawTime = nextDrawTime + drawInterval;
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
         }
+
+
+    }
+
+
 
     public void update (){
         if(keyH.upPressed == true){
